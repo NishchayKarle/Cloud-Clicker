@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from flask import Flask, Response, g, jsonify, request
+from flask import Flask, Response, g, jsonify, render_template, request
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, jwt_required)
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -15,7 +15,7 @@ app.config["JWT_SECRET_KEY"] = "my_secret_key"
 jwt = JWTManager(app)
 
 # Path to the SQLite database file
-DATABASE = os.path.join(app.root_path, "cloud_clicker.db")
+DATABASE = os.path.join(app.root_path, "db", "cloud_clicker.db")
 
 
 def get_db() -> sqlite3.Connection:
@@ -87,6 +87,12 @@ def init_db() -> None:
             cursor.execute("INSERT INTO clicks (count) VALUES (0)")
 
         db.commit()
+
+
+# Serve the main page
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 
 # API endpoint to register a new user
