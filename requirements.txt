@@ -1,0 +1,4 @@
+flask
+requests
+flask-jwt-extended
+werkzeug
