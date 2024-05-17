@@ -23,7 +23,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.11'
+        python-version: '3.8'  # Adjust the Python version as needed
 
     - name: Install dependencies
       run: |
@@ -43,8 +43,16 @@ jobs:
 
     - name: Initialize Elastic Beanstalk
       run: |
-        eb init -p python-3.11 ${{ secrets.EB_APP_NAME }} --region ${{ secrets.AWS_REGION }}
+        eb init -p python-3.8 ${{ secrets.EB_APP_NAME }} --region ${{ secrets.AWS_REGION }}
+
+    - name: Create Elastic Beanstalk application version
+      run: |
+        VERSION_LABEL="app-$(date +'%Y%m%d_%H%M%S')"
+        aws elasticbeanstalk create-application-version \
+          --application-name ${{ secrets.EB_APP_NAME }} \
+          --version-label $VERSION_LABEL \
+          --source-bundle S3Bucket=${{ secrets.S3_BUCKET }},S3Key=my-app.zip
 
     - name: Deploy to Elastic Beanstalk
       run: |
-        eb deploy ${{ secrets.EB_ENV_NAME }} --staged
+        eb deploy ${{ secrets.EB_ENV_NAME }} --version $VERSION_LABEL
