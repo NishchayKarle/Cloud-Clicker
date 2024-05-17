@@ -43,17 +43,8 @@ jobs:
 
     - name: Initialize Elastic Beanstalk
       run: |
-        eb init -p python-3.8 ${{ secrets.EB_APP_NAME }} --region ${{ secrets.AWS_REGION }}
-
-    - name: Create Elastic Beanstalk application version
-      run: |
-        VERSION_LABEL="app-$(date +'%Y%m%d_%H%M%S')"
-        aws elasticbeanstalk create-application-version \
-          --application-name ${{ secrets.EB_APP_NAME }} \
-          --version-label $VERSION_LABEL \
-          --source-bundle S3Bucket=${{ secrets.S3_BUCKET }},S3Key=my-app.zip
+        eb init -p python-3.11 ${{ secrets.EB_APP_NAME }} --region ${{ secrets.AWS_REGION }}
 
     - name: Deploy to Elastic Beanstalk
       run: |
-        VERSION_LABEL="app-$(date +'%Y%m%d_%H%M%S')"
-        eb deploy ${{ secrets.EB_ENV_NAME }} --version $VERSION_LABEL
+        eb deploy ${{ secrets.EB_ENV_NAME }} --staged
