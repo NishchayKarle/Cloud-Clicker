@@ -2,4 +2,3 @@ flask
 requests
 flask-jwt-extended
 werkzeug
-s3transfer==0.10.1
