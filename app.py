@@ -3,7 +3,7 @@ import sqlite3
 
 from flask import Flask, Response, g, jsonify, render_template, request
 from flask_jwt_extended import (JWTManager, create_access_token,
-                                get_jwt_identity, jwt_required)
+                                get_jwt_identity, verify_jwt_in_request)
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize the Flask app
@@ -148,7 +148,6 @@ def login() -> Response:
     cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
     user = cursor.fetchone()
 
-    print(user, generate_password_hash(password))  # Debugging
     if user and check_password_hash(user[2], password):
         access_token = create_access_token(identity={"user_id": user[0], "username": username})
         return jsonify(access_token=access_token)
@@ -156,92 +155,93 @@ def login() -> Response:
         return jsonify({"msg": "Bad username or password"}), 401
 
 
-# API endpoint to get the total click count
-@app.route("/api/clicks", methods=["GET"])
-def get_clicks() -> Response:
+# API endpoint to get the click count and to increment the click count
+@app.route("/api/clicks", methods=["GET", "POST"])
+def handle_clicks() -> Response:
     """
-    Get the total click count.
+    Get the click count or increment the click count.
+
+    GET: Returns the total click count and, if authenticated, the user's click count.
+    POST: Increments the total click count and the user's click count (requires authentication).
 
     Returns:
-        JSON: A JSON object with the total click count.
+        JSON: A JSON object with the click counts.
     """
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT count FROM clicks WHERE id = 1")
-    click_data = cursor.fetchone()
-    return jsonify({"count": click_data[0]})
 
+    # Get the click count
+    if request.method == "GET":
+        verify_jwt_in_request(optional=True)
 
-# API endpoint to get the user's click count
-@app.route("/api/user_clicks", methods=["GET"])
-@jwt_required()
-def get_user_clicks() -> Response:
-    """
-    Get the user's click count.
+        # Check if auth token is present
+        identity = get_jwt_identity()
 
-    Requires:
-        JWT token in the Authorization header.
+        # If auth token is present, get the user's click count
+        if identity:
+            # Get the user ID from the token and fetch the user's click count
+            user_id = identity["user_id"]
+            cursor.execute("SELECT clicks FROM user_clicks WHERE user_id = ?", (user_id,))
+            user_click_data = cursor.fetchone()
+            user_clicks = user_click_data[0] if user_click_data else 0
 
-    Returns:
-        JSON: A JSON object with the user's click count.
-    """
-    identity = get_jwt_identity()
-    user_id = identity["user_id"]
+            # Fetch the total click count
+            cursor.execute("SELECT count FROM clicks WHERE id = 1")
+            click_data = cursor.fetchone()
 
-    db = get_db()
-    cursor = db.cursor()
-    cursor.execute("SELECT clicks FROM user_clicks WHERE user_id = ?", (user_id,))
-    user_click_data = cursor.fetchone()
+            return jsonify({"total_clicks": click_data[0], "user_clicks": user_clicks})
 
-    if user_click_data:
-        user_clicks = user_click_data[0]
-    else:
-        user_clicks = 0
+        # If auth token is not present, return the total click count
+        else:
+            # Fetch the total click count
+            cursor.execute("SELECT count FROM clicks WHERE id = 1")
+            click_data = cursor.fetchone()
 
-    return jsonify({"user_clicks": user_clicks})
+            return jsonify({"total_clicks": click_data[0]})
 
+    # Increment the click count
+    elif request.method == "POST":
+        # make sure auth token is present
+        verify_jwt_in_request()
 
-# API endpoint to increment the click count
-@app.route("/api/clicks", methods=["POST"])
-@jwt_required()
-def increment_clicks() -> Response:
-    """
-    Increment the total click count and the user's click count.
+        # Check if auth token is present
+        identity = get_jwt_identity()
 
-    Requires:
-        JWT token in the Authorization header.
+        # If auth token is not present, return an error
+        # The user needs to be authenticated to increment the click count
+        if not identity:
+            return jsonify({"msg": "Token required"}), 401
 
-    Returns:
-        JSON: A JSON object with the updated total click count and the user's click count.
-    """
-    identity = get_jwt_identity()
-    user_id = identity["user_id"]
+        # Get the user ID from the token and increment the click counts
+        user_id = identity["user_id"]
+        cursor.execute("SELECT count FROM clicks WHERE id = 1")
+        click_data = cursor.fetchone()
+        new_count = click_data[0] + 1
 
-    db = get_db()
-    cursor = db.cursor()
+        # Update the total click count
+        cursor.execute("UPDATE clicks SET count = ? WHERE id = 1", (new_count,))
 
-    # Increment total clicks
-    cursor.execute("SELECT count FROM clicks WHERE id = 1")
-    click_data = cursor.fetchone()
-    new_count = click_data[0] + 1
-    cursor.execute("UPDATE clicks SET count = ? WHERE id = 1", (new_count,))
+        cursor.execute("SELECT clicks FROM user_clicks WHERE user_id = ?", (user_id,))
+        user_click_data = cursor.fetchone()
 
-    # Increment user clicks
-    cursor.execute("SELECT clicks FROM user_clicks WHERE user_id = ?", (user_id,))
-    user_click_data = cursor.fetchone()
-    if user_click_data:
-        new_user_count = user_click_data[0] + 1
-        cursor.execute(
-            "UPDATE user_clicks SET clicks = ? WHERE user_id = ?", (new_user_count, user_id)
-        )
-    else:
-        new_user_count = 1
-        cursor.execute(
-            "INSERT INTO user_clicks (user_id, clicks) VALUES (?, ?)", (user_id, new_user_count)
-        )
+        # If the user has clicked before, increment the count
+        if user_click_data:
+            new_user_count = user_click_data[0] + 1
+            cursor.execute(
+                "UPDATE user_clicks SET clicks = ? WHERE user_id = ?", (new_user_count, user_id)
+            )
 
-    db.commit()
-    return jsonify({"total_clicks": new_count, "user_clicks": new_user_count})
+        # If the user is clicking for the first time, add a new entry
+        else:
+            new_user_count = 1
+            cursor.execute(
+                "INSERT INTO user_clicks (user_id, clicks) VALUES (?, ?)", (user_id, new_user_count)
+            )
+
+        # Commit the changes to the database
+        db.commit()
+
+        return jsonify({"total_clicks": new_count, "user_clicks": new_user_count})
 
 
 # debug

@@ -8,18 +8,6 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/static/style.css">
     <title>Cloud Clicker</title>
-    <script>
-        function logout() {
-            console.log("logout, back pressed");
-            sessionStorage.removeItem('username');
-            sessionStorage.removeItem('token');
-            window.location.href = '/';
-        }
-
-        window.onpopstate = () => {
-            logout();
-        }
-    </script>
 </head>
 
 <body>
