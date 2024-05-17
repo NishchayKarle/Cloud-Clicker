@@ -8,6 +8,18 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="/static/style.css">
     <title>Cloud Clicker</title>
+    <script>
+        function logout() {
+            console.log("logout, back pressed");
+            sessionStorage.removeItem('username');
+            sessionStorage.removeItem('token');
+            window.location.href = '/';
+        }
+
+        window.onpopstate = () => {
+            logout();
+        }
+    </script>
 </head>
 
 <body>
@@ -16,9 +28,12 @@
             <div class="nav-logo">
                 <p>Cloud Clicker</p>
             </div>
+            <div class="nav-menu" id="navMenu">
+                <a onclick="showClicks()" class="link-menu">View Clicks</a>
+            </div>
             <div class="nav-button">
-                <button class="btn white-btn" id="loginBtn" onclick="login()">Sign In</button>
-                <button class="btn" id="registerBtn" onclick="register()">Sign Up</button>
+                <button class="btn white-btn" id="loginBtn" onclick="showLogin()">Sign In</button>
+                <button class="btn" id="registerBtn" onclick="showRegister()">Sign Up</button>
             </div>
         </nav>
         <!----------------------------- Form box ----------------------------------->
@@ -27,7 +42,7 @@
             <!------------------- login form -------------------------->
             <div class="login-container" id="login">
                 <div class="top">
-                    <span>Don't have an account? <a onclick="register()">Sign Up</a></span>
+                    <span>Don't have an account? <a onclick="showRegister()" class="link">Sign Up</a></span>
                     <header>Login</header>
                 </div>
                 <div class="input-box">
@@ -39,14 +54,16 @@
                     <i class="bx bx-lock-alt"></i>
                 </div>
                 <div class="input-box">
-                    <input type="submit" class="submit" value="Sign In" onclick="getSignIn()">
+                    <input type="submit" class="submit" value="Sign In" onclick="signIn()">
                 </div>
+                <p id="signin-message-valid" class="valid-message"></p>
+                <p id="signin-message-invalid" class="invalid-message"></p>
             </div>
 
             <!------------------- registration form -------------------------->
             <div class="register-container" id="register">
                 <div class="top">
-                    <span>Have an account? <a onclick="login()">Login</a></span>
+                    <span>Have an account? <a onclick="showLogin()" class="link">Login</a></span>
                     <header>Sign Up</header>
                 </div>
                 <div class="input-box">
@@ -58,8 +75,10 @@
                     <i class="bx bx-lock-alt"></i>
                 </div>
                 <div class="input-box">
-                    <input type="submit" class="submit" value="Register" onclick="getSignUp()">
+                    <input type="submit" class="submit" value="Register" onclick="signUp()">
                 </div>
+                <p id="signup-message-valid" class="valid-message"></p>
+                <p id="signup-message-invalid" class="invalid-message"></p>
             </div>
         </div>
     </div>

@@ -3,16 +3,18 @@ var b = document.getElementById("registerBtn");
 var x = document.getElementById("login");
 var y = document.getElementById("register");
 
-function login() {
+function showLogin() {
     x.style.left = "4px";
     y.style.right = "-520px";
     a.className += " white-btn";
     b.className = "btn";
     x.style.opacity = 1;
     y.style.opacity = 0;
+
+    logout();
 }
 
-function register() {
+function showRegister() {
     x.style.left = "-510px";
     y.style.right = "5px";
     a.className = "btn";
@@ -21,132 +23,165 @@ function register() {
     y.style.opacity = 1;
 }
 
-function getSignIn() {
+function showClicks() {
+    window.location.href = '/clicks';
+}
+
+function clearSignIn() {
+    document.getElementById('signin-message-valid').textContent = '';
+    document.getElementById('signin-message-invalid').textContent = '';
+}
+
+function clearSignUp() {
+    document.getElementById('signup-message-valid').textContent = '';
+    document.getElementById('signup-message-invalid').textContent = '';
+}
+
+function signIn() {
+    clearSignUp();
+
     const username = document.getElementById('signin-username').value;
     const password = document.getElementById('signin-password').value;
 
     document.getElementById('signin-username').value = '';
     document.getElementById('signin-password').value = '';
 
-    console.log('Login: ', username, password);
+    fetch('/api/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(result => {
+            if (result.status === 200) {
+                console.log("Logged in");
+                let token = result.body.access_token;
+                sessionStorage.setItem('token', token);
+                sessionStorage.setItem('username', username);
+
+                document.getElementById('signin-message-valid').textContent = 'Logging in...';
+                setTimeout(() => {
+                    document.getElementById('signin-message-valid').textContent = '';
+
+                    // Move to the clicker page
+                    showClicks();
+                }, 300);
+            } else {
+                document.getElementById('signin-message-invalid').textContent = result.body.msg;
+            }
+        })
+        .catch(error => console.error('Error:', error));
 }
 
-function getSignUp() {
+function signUp() {
+    clearSignIn();
+
     const username = document.getElementById('signup-username').value;
     const password = document.getElementById('signup-password').value;
 
-    document.getElementById('signup-username').value = '';
-    document.getElementById('signup-password').value = '';
+    fetch('/api/register', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ username, password })
+    })
+        .then(response => response.json().then(data => ({ status: response.status, body: data })))
+        .then(result => {
+            if (result.status === 201) {
+                document.getElementById('signup-message-valid').textContent = 'User registered successfully. Please sign in.';
+                document.getElementById('signup-username').value = '';
+                document.getElementById('signup-password').value = '';
 
-    console.log('Sign Up: ', username, password);
+                // Wait for 1 second before showing the login form
+                setTimeout(() => {
+                    showLogin();
+                    // clear message
+                    document.getElementById('signup-message-valid').textContent = '';
+                }, 1000);
+            } else {
+                document.getElementById('signup-message-invalid').textContent = result.body.msg;
+            }
+        })
+        .catch(error => console.error('Error:', error));
 }
 
+document.addEventListener('DOMContentLoaded', () => {
+    // On the clicker page
+    if (window.location.pathname === '/clicks') {
+        const username = sessionStorage.getItem('username');
+        const token = sessionStorage.getItem('token');
+        const userNameElement = document.getElementById('user-name');
+        const clickButton = document.getElementById('clicker');
+        const userClicksElement = document.getElementById('user-clicks').parentElement;
+        const logoutButton = document.querySelector('.nav-button button');
 
-// let token = '';
+        if (username && token) {
+            userNameElement.textContent = `Welcome, ${username}`;
+            clickButton.parentElement.style.display = 'block';
+            userClicksElement.style.display = 'block';
+            logoutButton.style.display = 'block';
+            getClickCounts(token);
+            getUserClickCounts(token);
 
-// function showSignIn() {
-//     document.getElementById('signup-form').style.display = 'none';
-//     document.getElementById('signin-form').style.display = 'block';
-// }
+            // Periodically update the click counts
+            setInterval(() => {
+                getClickCounts(token);
+                getUserClickCounts(token);
+            }, 100);
+        } else {
+            userNameElement.textContent = 'Welcome, Guest';
+            getClickCounts();
 
-// function showSignUp() {
-//     document.getElementById('signin-form').style.display = 'none';
-//     document.getElementById('signup-form').style.display = 'block';
-// }
+            // Periodically update the click counts
+            setInterval(() => {
+                getClickCounts();
+            }, 100);
+        }
+    }
+});
 
+function getClickCounts(token) {
+    fetch('/api/clicks', {
+        method: 'GET',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-clicks').textContent = data.count;
+        });
+}
 
-// function signup() {
-//     const username = document.getElementById('signup-username').value;
-//     const password = document.getElementById('signup-password').value;
+function getUserClickCounts(token) {
+    fetch('/api/user_clicks', {
+        method: 'GET',
+        headers: { 'Authorization': `Bearer ${token}` }
+    })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('user-clicks').textContent = data.user_clicks;
+        });
+}
 
-//     fetch('/api/register', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({ username, password })
-//     })
-//         .then(response => response.json().then(data => ({ status: response.status, body: data })))
-//         .then(result => {
-//             if (result.status === 201) {
-//                 document.getElementById('signup-message').textContent = 'User registered successfully. Please sign in.';
-//                 showSignIn();
-//             } else {
-//                 document.getElementById('signup-message').textContent = result.body.msg;
-//             }
-//         })
-//         .catch(error => console.error('Error:', error));
-// }
+function incrementClickUser() {
+    const token = sessionStorage.getItem('token');
+    fetch('/api/clicks', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-clicks').textContent = data.total_clicks;
+            document.getElementById('user-clicks').textContent = data.user_clicks;
+        });
+}
 
-// function signin() {
-//     const username = document.getElementById('signin-username').value;
-//     const password = document.getElementById('signin-password').value;
-
-//     fetch('/api/login', {
-//         method: 'POST',
-//         headers: {
-//             'Content-Type': 'application/json'
-//         },
-//         body: JSON.stringify({ username, password })
-//     })
-//         .then(response => response.json().then(data => ({ status: response.status, body: data })))
-//         .then(result => {
-//             if (result.status === 200) {
-//                 token = result.body.access_token;
-//                 document.getElementById('auth-forms').style.display = 'none';
-//                 document.getElementById('clicker').style.display = 'block';
-//                 document.getElementById('user-name').textContent = username;
-//                 getClickCounts();
-//             } else {
-//                 document.getElementById('signin-message').textContent = result.body.msg;
-//             }
-//         })
-//         .catch(error => console.error('Error:', error));
-// }
-
-// function getClickCounts() {
-//     fetch('/api/clicks', {
-//         method: 'GET',
-//         headers: {
-//             'Authorization': `Bearer ${token}`
-//         }
-//     })
-//         .then(response => response.json())
-//         .then(data => {
-//             document.getElementById('total-clicks').textContent = data.count;
-//         });
-
-//     fetch('/api/user_clicks', {
-//         method: 'GET',
-//         headers: {
-//             'Authorization': `Bearer ${token}`
-//         }
-//     })
-//         .then(response => response.json())
-//         .then(data => {
-//             document.getElementById('user-clicks').textContent = data.user_clicks;
-//         });
-// }
-
-// function incrementClick() {
-//     fetch('/api/clicks', {
-//         method: 'POST',
-//         headers: {
-//             'Authorization': `Bearer ${token}`
-//         }
-//     })
-//         .then(response => response.json())
-//         .then(data => {
-//             document.getElementById('total-clicks').textContent = data.total_clicks;
-//             document.getElementById('user-clicks').textContent = data.user_clicks;
-//         });
-// }
-
-// function logout() {
-//     token = '';
-//     document.getElementById('auth-forms').style.display = 'block';
-//     document.getElementById('clicker').style.display = 'none';
-//     document.getElementById('signin-username').value = '';
-//     document.getElementById('signin-password').value = '';
-//     document.getElementById('signin-message').textContent = '';
-// }
+function logout() {
+    sessionStorage.removeItem('username');
+    sessionStorage.removeItem('token');
+    window.location.href = '/';
+}

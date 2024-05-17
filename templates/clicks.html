@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Clicker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div class="wrapper">
+        <nav class="nav">
+            <div class="nav-logo">
+                <p id="user-name">Welcome, </p>
+            </div>
+            <div class="nav-button">
+                <button class="btn logout-btn" onclick="logout()" style="display: none;">Logout</button>
+            </div>
+        </nav>
+        <!-------------------Click Box-------------------------------->
+        <div class="input-box">
+            <h2>Total Clicks: <span id="total-clicks">0</span></h2>
+            <h2 style="display: none;">Your Clicks: <span id="user-clicks">0</span></h2>
+            <div class="submit" style="display: none;">
+                <button class="submit" onclick="incrementClickUser()" id="clicker">Click Me!</button>
+            </div>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+
+</html>

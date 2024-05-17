@@ -95,6 +95,12 @@ def index():
     return render_template("index.html")
 
 
+# Serve the clicks page
+@app.route("/clicks")
+def clicks():
+    return render_template("clicks.html")
+
+
 # API endpoint to register a new user
 @app.route("/api/register", methods=["POST"])
 def register() -> Response:
@@ -236,6 +242,17 @@ def increment_clicks() -> Response:
 
     db.commit()
     return jsonify({"total_clicks": new_count, "user_clicks": new_user_count})
+
+
+# debug
+# list all users
+@app.route("/api/users", methods=["GET"])
+def get_users() -> Response:
+    db = get_db()
+    cursor = db.cursor()
+    cursor.execute("SELECT * FROM users")
+    users = cursor.fetchall()
+    return jsonify({"users": users})
 
 
 if __name__ == "__main__":
