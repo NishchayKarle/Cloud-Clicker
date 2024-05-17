@@ -56,4 +56,4 @@ jobs:
     - name: Deploy to Elastic Beanstalk
       run: |
         VERSION_LABEL="app-$(date +'%Y%m%d_%H%M%S')"
-        eb deploy ${{ secrets.EB_ENV_NAME }} --version $VERSION_LABEL
+        eb deploy cloud-clicker-env-test --version $VERSION_LABEL
