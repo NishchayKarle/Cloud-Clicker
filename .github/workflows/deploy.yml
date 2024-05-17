@@ -23,7 +23,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.8'  # Adjust the Python version as needed
+        python-version: '3.11'
 
     - name: Install dependencies
       run: |
@@ -56,4 +56,4 @@ jobs:
     - name: Deploy to Elastic Beanstalk
       run: |
         VERSION_LABEL="app-$(date +'%Y%m%d_%H%M%S')"
-        eb deploy cloud-clicker-env-test --version $VERSION_LABEL
+        eb deploy ${{ secrets.EB_ENV_NAME }} --version $VERSION_LABEL
