@@ -2,3 +2,4 @@ flask
 requests
 flask-jwt-extended
 werkzeug
+boto3
