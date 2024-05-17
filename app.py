@@ -1,5 +1,7 @@
+import logging
 import os
 import sqlite3
+from logging.handlers import RotatingFileHandler
 
 from flask import Flask, Response, g, jsonify, render_template, request
 from flask_jwt_extended import (JWTManager, create_access_token,
@@ -16,6 +18,20 @@ jwt = JWTManager(app)
 
 # Path to the SQLite database file
 DATABASE = os.path.join(app.root_path, "db", "cloud_clicker.db")
+
+# Set up logging
+if not os.path.exists("logs"):
+    os.makedirs("logs")
+file_handler = RotatingFileHandler(
+    os.path.join(app.root_path, "logs", "app.log"), maxBytes=10240, backupCount=10
+)
+file_handler.setFormatter(
+    logging.Formatter("%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]")
+)
+file_handler.setLevel(logging.INFO)
+app.logger.addHandler(file_handler)
+app.logger.setLevel(logging.INFO)
+app.logger.info("Cloud Clicker Application Startup")
 
 
 def get_db() -> sqlite3.Connection:
@@ -89,6 +105,13 @@ def init_db() -> None:
         db.commit()
 
 
+# @app.before_request
+# def log_request_info():
+#     """Log the request information before processing a request."""
+#     app.logger.info("Headers: %s", request.headers)
+#     app.logger.info("Body: %s", request.get_data())
+
+
 # Serve the main page
 @app.route("/")
 def index():
@@ -110,20 +133,25 @@ def register() -> Response:
     Returns:
         JSON: A JSON object with a message indicating the success or failure of the registration.
     """
+    # Get the username and password from the request
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
+    # Generate a hash for the password
     hashed_password = generate_password_hash(password)
 
     db = get_db()
     cursor = db.cursor()
     try:
+        # Insert the user details into the database
         cursor.execute(
             "INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed_password)
         )
         db.commit()
+        app.logger.info(f"User {username} registered successfully.")
 
     except sqlite3.IntegrityError:
+        app.logger.error(f"Username {username} already exists.")
         return jsonify({"msg": "Username already exists"}), 409
 
     return jsonify({"msg": "User registered successfully"}), 201
@@ -139,19 +167,26 @@ def login() -> Response:
         JSON: A JSON object with the access token if the login is successful,
               otherwise a message indicating the failure.
     """
+    # Get the username and password from the request
     data = request.get_json()
     username = data.get("username")
     password = data.get("password")
 
     db = get_db()
     cursor = db.cursor()
-    cursor.execute("SELECT * FROM users WHERE username = ?", (username,))
+    cursor.execute(
+        "SELECT * FROM users WHERE username = ?", (username,)
+    )  # Check if the username exists
     user = cursor.fetchone()
 
+    # If the user exists and the password is correct, generate an access token
     if user and check_password_hash(user[2], password):
         access_token = create_access_token(identity={"user_id": user[0], "username": username})
+        app.logger.info(f"User {username} logged in successfully.")
         return jsonify(access_token=access_token)
+
     else:
+        app.logger.warning(f"Failed login attempt for username {username}.")
         return jsonify({"msg": "Bad username or password"}), 401
 
 
@@ -188,7 +223,7 @@ def handle_clicks() -> Response:
             # Fetch the total click count
             cursor.execute("SELECT count FROM clicks WHERE id = 1")
             click_data = cursor.fetchone()
-
+            # app.logger.info(f'User {identity["username"]} requested click counts.')
             return jsonify({"total_clicks": click_data[0], "user_clicks": user_clicks})
 
         # If auth token is not present, return the total click count
@@ -196,7 +231,7 @@ def handle_clicks() -> Response:
             # Fetch the total click count
             cursor.execute("SELECT count FROM clicks WHERE id = 1")
             click_data = cursor.fetchone()
-
+            # app.logger.info("Requested total click counts.")
             return jsonify({"total_clicks": click_data[0]})
 
     # Increment the click count
@@ -210,6 +245,7 @@ def handle_clicks() -> Response:
         # If auth token is not present, return an error
         # The user needs to be authenticated to increment the click count
         if not identity:
+            app.logger.warning("Unauthorized attempt to increment click counts.")
             return jsonify({"msg": "Token required"}), 401
 
         # Get the user ID from the token and increment the click counts
@@ -240,7 +276,7 @@ def handle_clicks() -> Response:
 
         # Commit the changes to the database
         db.commit()
-
+        app.logger.info(f'User {identity["username"]} incremented click counts.')
         return jsonify({"total_clicks": new_count, "user_clicks": new_user_count})
 
 
@@ -252,6 +288,7 @@ def get_users() -> Response:
     cursor = db.cursor()
     cursor.execute("SELECT * FROM users")
     users = cursor.fetchall()
+    app.logger.info("Admin requested user list.")
     return jsonify({"users": users})
 
 
