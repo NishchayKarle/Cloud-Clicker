@@ -16,10 +16,10 @@ jobs:
       - uses: actions/checkout@v2
   
       # Set up Python 3.* environment
-      - name: Set up Python 3.8
+      - name: Set up Python 3.11
         uses: actions/setup-python@v2
         with:
-          python-version: "3.8"
+          python-version: "3.11"
   
       # Elastic Beanstalk CLI version
       - name: Get EB CLI version
@@ -32,7 +32,7 @@ jobs:
   
       # Configure AWS Credentials
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -41,9 +41,14 @@ jobs:
       # Create the Elastic Beanstalk application
       - name: Create EBS application
         run: |
-          eb init -p python-3.8 CloudClick --region us-east-2
+          eb init -p python-3.11 CloudClick --region us-east-2
   
       # Deploy to (or Create) the Elastic Beanstalk environment
-      - name: Create test environment & deploy
+      - name: Create environment & deploy
         run: |
-          (eb use test-environment && eb status test-environment && eb deploy) || eb create test-environment
+          if eb status CloudClickEnv; then
+            eb use CloudClickEnv
+            eb deploy
+          else
+            eb create CloudClickEnv --single
+          fi
