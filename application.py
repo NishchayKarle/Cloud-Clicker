@@ -34,10 +34,7 @@ file_handler = RotatingFileHandler(
 )
 file_handler.setFormatter(
     logging.Formatter(
-        (
-            "%(asctime)s %(levelname)s: %(message)s",
-            " [in %(pathname)s:%(lineno)d]",
-        ),
+        "%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]"
     )
 )
 file_handler.setLevel(logging.INFO)
@@ -250,8 +247,8 @@ def handle_clicks() -> Response:
             # Fetch the total click count
             cursor.execute("SELECT count FROM clicks WHERE id = 1")
             click_data = cursor.fetchone()
-            # app.logger.info((f"User {identity["user_id"]}",
-            #                 "requested click counts."),)
+            # app.logger.info(f"User {identity["user_id"]}"
+            #                 "requested click counts.")
             return jsonify(
                 {
                     "total_clicks": click_data[0],
