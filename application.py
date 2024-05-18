@@ -8,9 +8,6 @@ from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, verify_jwt_in_request)
 from werkzeug.security import check_password_hash, generate_password_hash
 
-# Port for the Flask app
-PORT=80
-
 # Initialize the Flask app
 app = Flask(__name__)
 # For simplicity, I am using a static secret key here.
@@ -297,4 +294,4 @@ def get_users() -> Response:
 
 if __name__ == "__main__":
     init_db()
-    app.run(host="0.0.0.0", port=PORT)
+    app.run()

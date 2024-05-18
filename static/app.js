@@ -175,6 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const userNameElement = document.getElementById('user-name');
         const clickButton = document.getElementById('clicker');
         const userClicksElement = document.getElementById('user-clicks').parentElement;
+        const loginMessage = document.getElementById('login-message');
         const logoutButton = document.querySelector('.nav-button button');
 
         // Make sure the user is logged in
@@ -198,6 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // User is not logged in
             userNameElement.textContent = 'Welcome, Guest';
+
+            // Show the login message
+            loginMessage.style.display = 'block';
+
             // Only show the total click counts
             getClickCounts();
 

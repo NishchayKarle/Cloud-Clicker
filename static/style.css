@@ -233,6 +233,10 @@ h2 {
     margin: 20px 0;
 }
 
+h4 {
+    color: #8b3030;
+}
+
 
 
 @media only screen and (max-width: 786px) {
