@@ -5,8 +5,18 @@
     },
     "Ports": [
         {
-            "ContainerPort": 80,
-            "HostPort": 8080
+            "HostPort": 8080,
+            "ContainerPort": 80
+        }
+    ],
+    "Volumes": [
+        {
+            "HostDirectory": "/CloudClicker/logs",
+            "ContainerDirectory": "/app/logs"
+        }, 
+        {
+            "HostDirectory": "/CloudClicker/db",
+            "ContainerDirectory": "/app/db"
         }
     ]
 }
