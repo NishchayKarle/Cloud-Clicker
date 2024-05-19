@@ -167,9 +167,28 @@ function signUp() {
 document.addEventListener('DOMContentLoaded', () => {
     // While on the clicker page
     if (window.location.pathname === '/clicks') {
+        // Only show the total click counts
+        getClickCounts();
+
+        // Periodically update the total click counts
+        setInterval(() => {
+            getClickCounts();
+        }, 100);
+
         // Get the token and username from the session storage
         const token = sessionStorage.getItem('token');
         const username = sessionStorage.getItem('username');
+
+        // If the user is logged in
+        if (username && token) {
+            // get the click counts
+            getClickCounts(token);
+
+            // Periodically check and update the click counts
+            setInterval(() => {
+                getClickCounts(token);
+            }, 100);
+        }
 
         // Get the necessary elements
         const userNameElement = document.getElementById('user-name');
@@ -178,7 +197,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const loginMessage = document.getElementById('login-message');
         const logoutButton = document.querySelector('.nav-button button');
 
-        // Make sure the user is logged in
         if (username && token) {
             // Set the welcome message
             userNameElement.textContent = `Welcome, ${username}`;
@@ -189,13 +207,6 @@ document.addEventListener('DOMContentLoaded', () => {
             userClicksElement.style.display = 'block';
             logoutButton.style.display = 'block';
 
-            // get the click counts
-            getClickCounts(token);
-
-            // Periodically check and update the click counts
-            setInterval(() => {
-                getClickCounts(token);
-            }, 100);
         } else {
             // User is not logged in
             userNameElement.textContent = 'Welcome, Guest';
@@ -203,14 +214,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show the login message
             loginMessage.style.display = 'block';
         }
-
-        // Only show the total click counts
-        getClickCounts();
-
-        // Periodically update the total click counts
-        setInterval(() => {
-            getClickCounts();
-        }, 100);
     }
 });
 
