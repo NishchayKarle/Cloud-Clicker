@@ -330,19 +330,18 @@ def handle_clicks() -> Response:
             }
         )
 
+try:
+    init_db()
+
+except sqlite3.OperationalError:
+    app.logger.error("Database connection failed. Exiting...")
+    exit(1)
+
+except Exception as e:
+    app.logger.error(f"An error occurred: {e}")
+    exit(1)
 
 if __name__ == "__main__":
-    try:
-        init_db()
-
-    except sqlite3.OperationalError:
-        app.logger.error("Database connection failed. Exiting...")
-        exit(1)
-
-    except Exception as e:
-        app.logger.error(f"An error occurred: {e}")
-        exit(1)
-
     app.logger.info("Cloud Clicker Application Starting...")
     app.run()
     app.logger.info("Cloud Clicker Application Stopped.")
