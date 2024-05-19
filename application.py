@@ -4,12 +4,8 @@ import sqlite3
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, Response, g, jsonify, render_template, request
-from flask_jwt_extended import (
-    JWTManager,
-    create_access_token,
-    get_jwt_identity,
-    verify_jwt_in_request,
-)
+from flask_jwt_extended import (JWTManager, create_access_token,
+                                get_jwt_identity, verify_jwt_in_request)
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize the Flask app
@@ -161,6 +157,18 @@ def register() -> Response:
                 hashed_password,
             ),
         )
+
+        # Initialze click count for the new user
+        user_id = cursor.lastrowid
+        # Insert initial click count for the new user
+        cursor.execute(
+            "INSERT INTO user_clicks (user_id, clicks) VALUES (?, ?)",
+            (
+                user_id,
+                0,
+            ),
+        )
+
         db.commit()
         app.logger.info(f"User {username} registered successfully.")
 
@@ -230,6 +238,11 @@ def handle_clicks() -> Response:
     if request.method == "GET":
         verify_jwt_in_request(optional=True)
 
+        # Fetch the total click count
+        cursor.execute("SELECT count FROM clicks WHERE id = 1")
+        click_data = cursor.fetchone()
+        total_clicks = click_data[0] if click_data else 0
+
         # Check if auth token is present
         identity = get_jwt_identity()
 
@@ -244,25 +257,13 @@ def handle_clicks() -> Response:
             user_click_data = cursor.fetchone()
             user_clicks = user_click_data[0] if user_click_data else 0
 
-            # Fetch the total click count
-            cursor.execute("SELECT count FROM clicks WHERE id = 1")
-            click_data = cursor.fetchone()
-            # app.logger.info(f"User {identity["user_id"]}"
-            #                 "requested click counts.")
             return jsonify(
-                {
-                    "total_clicks": click_data[0],
-                    "user_clicks": user_clicks,
-                }
+                {"total_clicks": total_clicks, "user_clicks": user_clicks}
             )
 
         # If auth token is not present, return the total click count
         else:
-            # Fetch the total click count
-            cursor.execute("SELECT count FROM clicks WHERE id = 1")
-            click_data = cursor.fetchone()
-            # app.logger.info("Requested total click counts.")
-            return jsonify({"total_clicks": click_data[0]})
+            return jsonify({"total_clicks": total_clicks})
 
     # Increment the click count
     elif request.method == "POST":
@@ -294,29 +295,18 @@ def handle_clicks() -> Response:
             "SELECT clicks FROM user_clicks WHERE user_id = ?",
             (user_id,),
         )
+
+        # Increment the user's click count
+        # New users will have a click count of 0 initialized at registration
         user_click_data = cursor.fetchone()
-
-        # If the user has clicked before, increment the count
-        if user_click_data:
-            new_user_count = user_click_data[0] + 1
-            cursor.execute(
-                "UPDATE user_clicks SET clicks = ? WHERE user_id = ?",
-                (
-                    new_user_count,
-                    user_id,
-                ),
-            )
-
-        # If the user is clicking for the first time, add a new entry
-        else:
-            new_user_count = 1
-            cursor.execute(
-                "INSERT INTO user_clicks (user_id, clicks) VALUES (?, ?)",
-                (
-                    user_id,
-                    new_user_count,
-                ),
-            )
+        new_user_count = user_click_data[0] + 1
+        cursor.execute(
+            "UPDATE user_clicks SET clicks = ? WHERE user_id = ?",
+            (
+                new_user_count,
+                user_id,
+            ),
+        )
 
         # Commit the changes to the database
         db.commit()
@@ -330,18 +320,18 @@ def handle_clicks() -> Response:
             }
         )
 
-try:
-    init_db()
 
-except sqlite3.OperationalError:
-    app.logger.error("Database connection failed. Exiting...")
-    exit(1)
+def main():
+    try:
+        init_db()
 
-except Exception as e:
-    app.logger.error(f"An error occurred: {e}")
-    exit(1)
+    except sqlite3.OperationalError:
+        app.logger.error("Database connection failed. Exiting...")
+        exit(1)
 
-if __name__ == "__main__":
-    app.logger.info("Cloud Clicker Application Starting...")
-    app.run()
-    app.logger.info("Cloud Clicker Application Stopped.")
+    except Exception as e:
+        app.logger.error(f"An error occurred: {e}")
+        exit(1)
+
+
+main()

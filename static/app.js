@@ -99,7 +99,6 @@ function signIn() {
 
                     // Move to the clicker page
                     showClicks();
-                    getClickCounts(token);
                 }, 300);
 
                 // Clear the sign in form on successful login
@@ -148,12 +147,11 @@ function signUp() {
 
                 console.log('Successfully registered user :', username);
 
-                // Wait for 1 second before showing the login form
-                setTimeout(() => {
-                    showLogin();
-                    // clear message
-                    document.getElementById('signup-message-valid').textContent = '';
-                }, 800);
+                // Show the login form
+                showLogin();
+
+                // clear message
+                document.getElementById('signup-message-valid').textContent = '';
             } else {
                 // Show the error message
                 document.getElementById('signup-message-invalid').textContent = result.body.msg;
@@ -228,7 +226,7 @@ function getClickCounts(token = null) {
     })
         .then(response => response.json())
         .then(data => {
-            document.getElementById('total-clicks').textContent = data.total_clicks || data.count;
+            document.getElementById('total-clicks').textContent = data.total_clicks;
             if (data.user_clicks !== undefined) {
                 document.getElementById('user-clicks').parentElement.style.display = 'block';
                 document.getElementById('user-clicks').textContent = data.user_clicks;
