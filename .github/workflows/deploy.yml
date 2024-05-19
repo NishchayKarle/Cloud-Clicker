@@ -40,14 +40,14 @@ jobs:
       # Create the Elastic Beanstalk application
       - name: Create EBS application
         run: |
-          eb init -p docker CloudClickGH --region ${{ secrets.AWS_REGION }}
+          eb init -p docker CloudClick --region ${{ secrets.AWS_REGION }}
   
       # Deploy to (or Create) the Elastic Beanstalk environment
       - name: Create environment & deploy
         run: |
-          if eb status CloudClickGHEnv; then
-            eb use CloudClickGHEnv
+          if eb status CloudClickEnv; then
+            eb use CloudClickEnv
             eb deploy
           else
-            eb create CloudClickGHEnv --single
+            eb create CloudClickEnv --single
           fi
