@@ -11,11 +11,11 @@
     ],
     "Volumes": [
         {
-            "HostDirectory": "/CloudClicker/logs",
+            "HostDirectory": "/var/log/cloud-clicker",
             "ContainerDirectory": "/app/logs"
         }, 
         {
-            "HostDirectory": "/CloudClicker/db",
+            "HostDirectory": "/var/lib/cloud-clicker",
             "ContainerDirectory": "/app/db"
         }
     ]
