@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Periodically check and update the click counts
             setInterval(() => {
                 getClickCounts(token);
-            }, 100);
+            }, 300);
         } else {
             // User is not logged in
             userNameElement.textContent = 'Welcome, Guest';
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Periodically update the total click counts
             setInterval(() => {
                 getClickCounts();
-            }, 100);
+            }, 300);
 
         }
     }
