@@ -1,4 +1,4 @@
-name: Deploy to AWS Elastic Beanstalk
+name: Deploy Cloud Clicker to AWS Elastic Beanstalk
 
 on:
   push:
@@ -40,7 +40,7 @@ jobs:
       # Create the Elastic Beanstalk application
       - name: Create EBS application
         run: |
-          eb init -p docker CloudClickGH --region us-east-2
+          eb init -p docker CloudClickGH --region ${{ secrets.AWS_REGION }}
   
       # Deploy to (or Create) the Elastic Beanstalk environment
       - name: Create environment & deploy
