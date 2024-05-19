@@ -158,7 +158,7 @@ def register() -> Response:
             ),
         )
 
-        # Initialze click count for the new user
+        # Initialize click count for the new user
         user_id = cursor.lastrowid
         # Insert initial click count for the new user
         cursor.execute(
@@ -323,7 +323,9 @@ def handle_clicks() -> Response:
 
 def main():
     try:
+        app.logger.info("Initializing the database...")
         init_db()
+        app.logger.info("Database initialized successfully.")
 
     except sqlite3.OperationalError:
         app.logger.error("Database connection failed. Exiting...")
