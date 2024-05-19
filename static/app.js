@@ -202,15 +202,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Show the login message
             loginMessage.style.display = 'block';
-
-            // Only show the total click counts
-            getClickCounts();
-
-            // Periodically update the total click counts
-            setInterval(() => {
-                getClickCounts();
-            }, 100);
         }
+
+        // Only show the total click counts
+        getClickCounts();
+
+        // Periodically update the total click counts
+        setInterval(() => {
+            getClickCounts();
+        }, 100);
     }
 });
 
@@ -221,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
  * @returns {void}
  */
 function getClickCounts(token = null) {
-    // Make a GET request to the server to get the total click counts
+    // Make a GET request to the server to get the click counts
     fetch('/api/clicks', {
         method: 'GET',
         headers: token ? { 'Authorization': `Bearer ${token}` } : {}
