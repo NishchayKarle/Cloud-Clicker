@@ -1,6 +1,9 @@
 import logging
 import os
 import sqlite3
+import time
+from datetime import datetime
+from pytz import timezone, utc
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, Response, g, jsonify, render_template, request
@@ -102,10 +105,34 @@ def init_db() -> None:
         """
         )
 
+        # Create Click Log table
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS click_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                count INTEGER NOT NULL,
+                timestamp TEXT NOT NULL
+            )
+            """
+        )
+
         # Insert the initial click count if it doesn't exist
         cursor.execute("SELECT COUNT(*) FROM clicks")
         if cursor.fetchone()[0] == 0:
             cursor.execute("INSERT INTO clicks (count) VALUES (0)")
+
+        # Insert initial click log if it doesn't exist
+        cursor.execute("SELECT COUNT(*) FROM click_log")
+        if cursor.fetchone()[0] == 0:
+            cursor.execute(
+                "INSERT INTO click_log (count, timestamp) VALUES (?, ?)",
+                (
+                    0,
+                    time.time()
+                ),
+            )
+
+        app.logger.info("Database tables created successfully.")
 
         db.commit()
 
@@ -265,7 +292,6 @@ def handle_clicks() -> Response:
         else:
             return jsonify({"total_clicks": total_clicks})
 
-    # Increment the click count
     elif request.method == "POST":
         # make sure auth token is present
         verify_jwt_in_request()
@@ -313,12 +339,90 @@ def handle_clicks() -> Response:
         app.logger.info(
             f'User {identity["username"]} incremented click counts.'
         )
+
+        log_total_clicks()
+
         return jsonify(
             {
                 "total_clicks": new_count,
                 "user_clicks": new_user_count,
             }
         )
+
+
+def log_total_clicks() -> None:
+    """Log total clicks to click_log table."""
+    db = get_db()
+    cursor = db.cursor()
+
+    # Log the total click count with a timestamp
+    # Fetch the total click count
+    cursor.execute("SELECT count FROM clicks WHERE id = 1")
+    click_data = cursor.fetchone()
+    total_clicks = click_data[0]
+
+    cursor.execute(
+        "INSERT INTO click_log (count, timestamp) VALUES (?, ?)",
+        (
+            total_clicks,
+            time.time(),
+        ),
+    )
+
+    db.commit()
+
+
+def get_cst_time(unix_time: time.time) -> str:
+    """Get the current time in CST timezone.
+
+    Args:
+        unix_time (time.time): The Unix timestamp.
+
+    Returns:
+        str: The given time in CST timezone.
+    """
+    # Convert Unix time to a datetime object in UTC
+    utc_time = datetime.fromtimestamp(unix_time)
+
+    # Define the CST timezone
+    cst_timezone = timezone('US/Central')
+
+    # Convert the UTC datetime object to CST
+    cst_time = utc_time.replace(tzinfo=utc).astimezone(cst_timezone)
+
+    return cst_time.strftime('%H:%M')
+
+
+@app.route("/api/clicks/log", methods=["GET"])
+def get_click_log() -> Response:
+    """Get the 20 recent total clicks with 5 click increments.
+
+    Returns:
+        JSON: A JSON object with the click logs and clicks per minute.
+    """
+    db = get_db()
+    cursor = db.cursor()
+
+    # Fetch 100 recent click logs
+    cursor.execute("SELECT * FROM click_log ORDER BY id DESC LIMIT 100")
+    click_logs = cursor.fetchall()
+    clicks_wth_5_intervals = [
+        (log[1], get_cst_time(float(log[2]))) for log in click_logs[::5]
+    ]
+
+    # Calculate clicks per minute
+    cursor.execute("SELECT timestamp FROM click_log where id = 1")
+    first_log = float(cursor.fetchone()[0])
+    last_log = time.time()
+
+    return jsonify(
+        {
+            "click_logs": clicks_wth_5_intervals[::-1],
+            "clicks_per_minute":
+                (last_log - first_log)
+                / 60
+        }
+    )
 
 
 def main():
