@@ -44,6 +44,15 @@ function showClicks() {
 }
 
 /**
+ * Show the charts page
+ * 
+ * @returns {void}
+ */
+function showDashboard() {
+    window.location.href = '/dashboard';
+}
+
+/**
  * Clear the sign in form
  * 
  * @returns {void}
@@ -185,7 +194,6 @@ document.addEventListener('DOMContentLoaded', () => {
             // Show the clicker button, user click counts and logout button
             clickButton.parentElement.style.display = 'block';
             userClicksElement.style.display = 'block';
-            logoutButton.style.display = 'block';
 
             // get the click counts
             getClickCounts(token);
@@ -199,6 +207,8 @@ document.addEventListener('DOMContentLoaded', () => {
             userNameElement.textContent = 'Welcome, Guest';
             // Show the login message
             loginMessage.style.display = 'block';
+
+            logoutButton.textContent = 'Login';
 
             // Only show the total click counts
             getClickCounts();
@@ -231,7 +241,8 @@ function getClickCounts(token = null) {
                 document.getElementById('user-clicks').parentElement.style.display = 'block';
                 document.getElementById('user-clicks').textContent = data.user_clicks;
             }
-        });
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 /**
@@ -254,7 +265,8 @@ function incrementClickUser() {
         .then(data => {
             document.getElementById('total-clicks').textContent = data.total_clicks;
             document.getElementById('user-clicks').textContent = data.user_clicks;
-        });
+        })
+        .catch(error => console.error('Error:', error));
 }
 
 /**

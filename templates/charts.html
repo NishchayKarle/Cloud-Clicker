@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>Dashboard</title>
+</head>
+
+<body>
+    <div class="wrapper">
+        <nav class="nav">
+            <div class="nav-logo">
+                <p id="user-name">Welcome, </p>
+            </div>
+            <div class="nav-menu" id="navMenu">
+                <a onclick="showClicks()" class="link-menu">View Clicks</a>
+                <script src="/static/charts.js"></script>
+            </div>
+            <div class="nav-button">
+                <button class="btn logout-btn" onclick="logout()">Logout</button>
+                <script src="/static/app.js"></script>
+            </div>
+        </nav>
+        <div class="container">
+            <div class="chart">
+                <button class="refresh" onclick="refreshDashboard()" id="refresh">Refresh</button>
+                <div class="clicksPerMinute" id="clicksPerMinute">Clicks per min: 0</div>
+                <canvas id="clickChart" height="600" width="1000"></canvas>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="/static/charts.js"></script>
+</body>
+
+</html>

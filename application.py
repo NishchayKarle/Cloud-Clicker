@@ -3,12 +3,12 @@ import os
 import sqlite3
 import time
 from datetime import datetime
-from pytz import timezone, utc
 from logging.handlers import RotatingFileHandler
 
 from flask import Flask, Response, g, jsonify, render_template, request
 from flask_jwt_extended import (JWTManager, create_access_token,
                                 get_jwt_identity, verify_jwt_in_request)
+from pytz import timezone, utc
 from werkzeug.security import check_password_hash, generate_password_hash
 
 # Initialize the Flask app
@@ -126,10 +126,7 @@ def init_db() -> None:
         if cursor.fetchone()[0] == 0:
             cursor.execute(
                 "INSERT INTO click_log (count, timestamp) VALUES (?, ?)",
-                (
-                    0,
-                    time.time()
-                ),
+                (0, time.time()),
             )
 
         app.logger.info("Database tables created successfully.")
@@ -154,6 +151,12 @@ def index():
 @app.route("/clicks")
 def clicks():
     return render_template("clicks.html")
+
+
+# Server the dashboard page
+@app.route("/dashboard")
+def dashboard():
+    return render_template("charts.html")
 
 
 # API endpoint to register a new user
@@ -385,12 +388,12 @@ def get_cst_time(unix_time: time.time) -> str:
     utc_time = datetime.fromtimestamp(unix_time)
 
     # Define the CST timezone
-    cst_timezone = timezone('US/Central')
+    cst_timezone = timezone("US/Central")
 
     # Convert the UTC datetime object to CST
     cst_time = utc_time.replace(tzinfo=utc).astimezone(cst_timezone)
 
-    return cst_time.strftime('%H:%M')
+    return cst_time.strftime("%H:%M")
 
 
 @app.route("/api/clicks/log", methods=["GET"])
@@ -411,16 +414,18 @@ def get_click_log() -> Response:
     ]
 
     # Calculate clicks per minute
+    cursor.execute("select count from clicks where id = 1")
+    total_clicks = cursor.fetchone()[0]
+
     cursor.execute("SELECT timestamp FROM click_log where id = 1")
     first_log = float(cursor.fetchone()[0])
     last_log = time.time()
+    clicks_per_minute = f"{total_clicks / (last_log - first_log) / 60: .8f}"
 
     return jsonify(
         {
             "click_logs": clicks_wth_5_intervals[::-1],
-            "clicks_per_minute":
-                (last_log - first_log)
-                / 60
+            "clicks_per_minute": clicks_per_minute,
         }
     )
 

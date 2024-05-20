@@ -42,6 +42,13 @@ body {
     font-weight: 600;
 }
 
+.nav-menu {
+    display: flex;
+    justify-content: center;
+    width: 50%;
+    gap: 20px;
+}
+
 .link:hover,
 .active {
     border-bottom: 2px solid #fff;
@@ -237,6 +244,54 @@ h4 {
     color: #8b3030;
 }
 
+.container {
+    display: flex;
+    position: relative;
+}
+
+.chart {
+    padding: 2rem;
+    border: 1px solid #f49131;
+    border-radius: 1rem;
+    background: #251c35;
+    box-shadow: 0 0 16px rgba(0, 0, 0, 0.8);
+    position: relative;
+}
+
+.refresh {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 0.5rem 1rem;
+    border: none;
+    background-color: #f49131;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    font-weight: bold;
+    transition: transform 0.3s ease, font-size 0.3s ease;
+}
+
+.refresh:hover {
+    background-color: #e07a1f;
+    transform: scale(1.1);
+    cursor: pointer;
+}
+
+.clicksPerMinute {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #f49131;
+    border-radius: 5px;
+    background: #251c35;
+    color: #6f6f66;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    font-size: 1rem;
+    font-weight: bold;
+}
 
 
 @media only screen and (max-width: 786px) {
