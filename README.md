@@ -5,10 +5,10 @@
 Cloud Clicker is a web application designed to track and display click counts. The application supports user authentication, allows users to increment their click count, and displays overall and user-specific click data. The application also includes a dashboard that shows click statistics over time, including total clicks and clicks per minute.
 
 ## Sequence Diagram
-![Sequence Diagram](/diagrams/sequence_diagram.drawio.png)
+![Sequence Diagram](/diagrams/sequence_diag.drawio.jpeg)
 
 ## Design Diagram
-![Design Diagram](/diagrams/designdiagram.png)
+![Design Diagram](/diagrams/system_design.drawio.jpeg)
 
 ## Table of Contents
 
