@@ -67,7 +67,7 @@ function displayDashboard() {
         .then(response => response.json())
         .then(data => {
             // Set clicks per minute
-            document.getElementById('clicksPerMinute').textContent = 'Clicks per min: ' + data.clicks_per_minute;
+            document.getElementById('clicksPerMinute').textContent = 'Overall clicks per min: ' + data.clicks_per_minute;
 
             // Extract the first elements into one array and the second elements into another array
             const firstElements = data.click_logs.map(item => item[0]);
@@ -80,7 +80,7 @@ function displayDashboard() {
                 data: {
                     labels: transformArray(secondElements),
                     datasets: [{
-                        label: 'Total Clicks Over Last Few Intervals',
+                        label: 'Recent Clicks',
                         data: firstElements,
                         borderWidth: 1
                     }]
@@ -88,8 +88,18 @@ function displayDashboard() {
                 options: {
                     scales: {
                         y: {
-                        }
-                    }
+                            title: {
+                                display: true,
+                                text: 'Clicks'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Central Time'
+                            },
+                        },
+                    },
                 }
             });
         })

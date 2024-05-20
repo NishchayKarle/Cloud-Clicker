@@ -16,7 +16,7 @@
             </div>
             <div class="nav-menu" id="navMenu">
                 <a onclick="showClicks()" class="link-menu">View Clicks</a>
-                <script src="/static/charts.js"></script>
+                <script src="/static/app.js"></script>
             </div>
             <div class="nav-button">
                 <button class="btn logout-btn" onclick="logout()">Logout</button>
@@ -26,7 +26,7 @@
         <div class="container">
             <div class="chart">
                 <button class="refresh" onclick="refreshDashboard()" id="refresh">Refresh</button>
-                <div class="clicksPerMinute" id="clicksPerMinute">Clicks per min: 0</div>
+                <div class="clicksPerMinute" id="clicksPerMinute">Overall clicks per min: 0</div>
                 <canvas id="clickChart" height="600" width="1000"></canvas>
             </div>
         </div>
