@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 80
 
 # run app.py when the container launches
-CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:80", "application:app"]
+CMD ["gunicorn", "-b", "0.0.0.0:80", "application:app"]
 
 # # Build the image
 # docker build -t cloud-clicker-app .
