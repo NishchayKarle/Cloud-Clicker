@@ -3,12 +3,14 @@
 + Find the app [here](http://cloudclickerenv.eba-4fpezeke.us-east-1.elasticbeanstalk.com)
 + http://cloudclickerenv.eba-4fpezeke.us-east-1.elasticbeanstalk.com
 + Works best with Google-Chrome/Brave
++ Find Demo Video [here](https://drive.google.com/file/d/19TLSEdW2bI1nTvIE4YtOVevxXSD4QZYC)
 
 
 ## Project Overview
 
 + Cloud Clicker is a web application designed to track and display click counts.
-+ The application supports user authentication, allows users to increment their click count, and displays overall and user-specific click data in real time.
++ The application supports user authentication, allows users to increment their click count, and displays overall and user-specific click.
++ Live updates of clicks.
 + The application also includes a dashboard that shows click statistics over time, including total clicks and clicks per minute.
 + The application also has a comprehensive logging system to keep track of all aspects of the application.
 + On code push deployment to AWS Elastic Beanstalk
@@ -26,6 +28,7 @@
     - [Implementation Details](#implementation-details)
       - [Backend](#backend)
       - [Frontend](#frontend)
+      - [Server](#server)
       - [Steps](#steps)
   - [Database and Consistency](#database-and-consistency)
     - [Database](#database)
@@ -102,6 +105,10 @@ The backend exposes an API endpoint `/api/clicks` that returns the current total
 #### Frontend
 
 The frontend periodically fetches the latest click data from the backend and updates the user interface accordingly. This is done using JavaScript's `setInterval` function to make periodic API calls and update the DOM with the new data.
+
+#### Server
+
+Uses `gunicorn` to run the server.
 
 #### Steps
 
